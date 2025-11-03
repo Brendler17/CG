@@ -1,14 +1,9 @@
 const vertexShaderSource = `#version 300 es
     in vec2 a_position;
-    uniform vec2 u_resolution;
     uniform mat3 u_matrix;
 
     void main() {
-      vec2 position = (u_matrix * vec3(a_position, 1)).xy;
-      vec2 zeroToOne = position / u_resolution;
-      vec2 zeroToTwo = zeroToOne * 2.0;
-      vec2 clipSpace = zeroToTwo - 1.0;
-      gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+      gl_Position = vec4((u_matrix * vec3(a_position, 1)).xy, 0, 1);
     }
   `;
 
@@ -99,15 +94,15 @@ function main() {
 
     gl.bindVertexArray(vao);
 
-    gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
-
     gl.uniform4fv(colorLocation, color);
 
+    const projectionMatrix = m3.projection(gl.canvas.clientWidth, gl.canvas.clientHeight);
     const translationMatrix = m3.translation(translation[0], translation[1]);
     const rotationMatrix = m3.rotation(rotationInRadians);
     const scaleMatrix = m3.scaling(scale[0], scale[1]);
 
-    let matrix = m3.multiply(translationMatrix, rotationMatrix);
+    var matrix = m3.multiply(projectionMatrix, translationMatrix);
+    matrix = m3.multiply(matrix, rotationMatrix);
     matrix = m3.multiply(matrix, scaleMatrix);
 
     gl.uniformMatrix3fv(matrixLocation, false, matrix);
@@ -169,6 +164,14 @@ var m3 = {
       sx, 0, 0,
       0, sy, 0,
       0, 0, 1,
+    ];
+  },
+
+  projection: function (width, height) {
+    return [
+      2 / width, 0, 0,
+      0, -2 / height, 0,
+      -1, 1, 1,
     ];
   },
 
