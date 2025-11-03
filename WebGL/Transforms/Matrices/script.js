@@ -1,14 +1,10 @@
 const vertexShaderSource = `#version 300 es
     in vec2 a_position;
     uniform vec2 u_resolution;
-    uniform vec2 u_translation;
-    uniform vec2 u_rotation;
-    uniform vec2 u_scale;
+    uniform mat3 u_matrix;
 
     void main() {
-      vec2 scaledPosition = a_position * u_scale;
-      vec2 rotatedPosition = vec2(scaledPosition.x * u_rotation.y + scaledPosition.y * u_rotation.x, scaledPosition.y * u_rotation.y - scaledPosition.x * u_rotation.x);
-      vec2 position = rotatedPosition + u_translation;
+      vec2 position = (u_matrix * vec3(a_position, 1)).xy;
       vec2 zeroToOne = position / u_resolution;
       vec2 zeroToTwo = zeroToOne * 2.0;
       vec2 clipSpace = zeroToTwo - 1.0;
@@ -39,9 +35,7 @@ function main() {
   const positionAttributeLocation = gl.getAttribLocation(program, "a_position");
   const resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
   const colorLocation = gl.getUniformLocation(program, "u_color");
-  const translationLocation = gl.getUniformLocation(program, "u_translation");
-  const rotationLocation = gl.getUniformLocation(program, "u_rotation");
-  const scaleLocation = gl.getUniformLocation(program, "u_scale");
+  const matrixLocation = gl.getUniformLocation(program, "u_matrix");
 
   const positionBuffer = gl.createBuffer();
   const vao = gl.createVertexArray();
@@ -60,16 +54,16 @@ function main() {
   gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset);
 
   // VARIÁVEIS DE TRANSLAÇÃO //
-  const translation = [150, 150];
-  const rotation = [0, 1];
-  const scale = [1, 1];
-  const color = [Math.random(), Math.random(), Math.random(), 1];
+  let translation = [150, 150];
+  let rotationInRadians = 0;
+  let scale = [1, 1];
+  let color = [Math.random(), Math.random(), Math.random(), 1];
 
   drawScene();
 
-  webglLessonsUI.setupSlider("#x", { slide: updatePosition(0), max: gl.canvas.width });
-  webglLessonsUI.setupSlider("#y", { slide: updatePosition(1), max: gl.canvas.height });
-  webglLessonsUI.setupSlider("#angle", { slide: updateAngle, max: 360 });
+  webglLessonsUI.setupSlider("#x", { value: translation[0], slide: updatePosition(0), max: gl.canvas.width });
+  webglLessonsUI.setupSlider("#y", { value: translation[1], slide: updatePosition(1), max: gl.canvas.height });
+  webglLessonsUI.setupSlider("#angle", { value: rotationInRadians * 180 / Math.PI | 0, slide: updateAngle, max: 360 });
   webglLessonsUI.setupSlider("#scaleX", { value: scale[0], slide: updateScale(0), min: -5, max: 5, step: 0.01, precision: 2 });
   webglLessonsUI.setupSlider("#scaleY", { value: scale[1], slide: updateScale(1), min: -5, max: 5, step: 0.01, precision: 2 });
 
@@ -82,9 +76,7 @@ function main() {
 
   function updateAngle(event, ui) {
     var angleInDegrees = 360 - ui.value;
-    var angleInRadians = angleInDegrees * Math.PI / 180;
-    rotation[0] = Math.sin(angleInRadians);
-    rotation[1] = Math.cos(angleInRadians);
+    rotationInRadians = angleInDegrees * Math.PI / 180;
     drawScene();
   }
 
@@ -111,11 +103,14 @@ function main() {
 
     gl.uniform4fv(colorLocation, color);
 
-    gl.uniform2fv(translationLocation, translation);
+    const translationMatrix = m3.translation(translation[0], translation[1]);
+    const rotationMatrix = m3.rotation(rotationInRadians);
+    const scaleMatrix = m3.scaling(scale[0], scale[1]);
 
-    gl.uniform2fv(rotationLocation, rotation);
+    let matrix = m3.multiply(translationMatrix, rotationMatrix);
+    matrix = m3.multiply(matrix, scaleMatrix);
 
-    gl.uniform2fv(scaleLocation, scale);
+    gl.uniformMatrix3fv(matrixLocation, false, matrix);
 
     var primitiveType = gl.TRIANGLES;
     var offset = 0;
@@ -149,5 +144,65 @@ function setGeometry(gl) {
     ]),
     gl.STATIC_DRAW);
 }
+
+var m3 = {
+  translation: function translation(tx, ty) {
+    return [
+      1, 0, 0,
+      0, 1, 0,
+      tx, ty, 1,
+    ];
+  },
+
+  rotation: function rotation(angleInRadians) {
+    var c = Math.cos(angleInRadians);
+    var s = Math.sin(angleInRadians);
+    return [
+      c, -s, 0,
+      s, c, 0,
+      0, 0, 1,
+    ];
+  },
+
+  scaling: function scaling(sx, sy) {
+    return [
+      sx, 0, 0,
+      0, sy, 0,
+      0, 0, 1,
+    ];
+  },
+
+  multiply: function multiply(a, b) {
+    var a00 = a[0 * 3 + 0];
+    var a01 = a[0 * 3 + 1];
+    var a02 = a[0 * 3 + 2];
+    var a10 = a[1 * 3 + 0];
+    var a11 = a[1 * 3 + 1];
+    var a12 = a[1 * 3 + 2];
+    var a20 = a[2 * 3 + 0];
+    var a21 = a[2 * 3 + 1];
+    var a22 = a[2 * 3 + 2];
+    var b00 = b[0 * 3 + 0];
+    var b01 = b[0 * 3 + 1];
+    var b02 = b[0 * 3 + 2];
+    var b10 = b[1 * 3 + 0];
+    var b11 = b[1 * 3 + 1];
+    var b12 = b[1 * 3 + 2];
+    var b20 = b[2 * 3 + 0];
+    var b21 = b[2 * 3 + 1];
+    var b22 = b[2 * 3 + 2];
+    return [
+      b00 * a00 + b01 * a10 + b02 * a20,
+      b00 * a01 + b01 * a11 + b02 * a21,
+      b00 * a02 + b01 * a12 + b02 * a22,
+      b10 * a00 + b11 * a10 + b12 * a20,
+      b10 * a01 + b11 * a11 + b12 * a21,
+      b10 * a02 + b11 * a12 + b12 * a22,
+      b20 * a00 + b21 * a10 + b22 * a20,
+      b20 * a01 + b21 * a11 + b22 * a21,
+      b20 * a02 + b21 * a12 + b22 * a22,
+    ];
+  },
+};
 
 main();
