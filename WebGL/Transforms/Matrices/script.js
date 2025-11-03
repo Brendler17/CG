@@ -1,4 +1,4 @@
-const vertexShaderSource = `#version 300 es
+var vertexShaderSource = `#version 300 es
     in vec2 a_position;
     uniform mat3 u_matrix;
 
@@ -7,7 +7,7 @@ const vertexShaderSource = `#version 300 es
     }
   `;
 
-const fragmentShaderSource = `#version 300 es
+var fragmentShaderSource = `#version 300 es
     precision highp float;
     uniform vec4 u_color;
     out vec4 outColor;
@@ -18,33 +18,33 @@ const fragmentShaderSource = `#version 300 es
   `;
 
 function main() {
-  const canvas = document.querySelector("#canvas");
+  var canvas = document.querySelector("#canvas");
   /** @type {WebGL2RenderingContext} */
-  const gl = canvas.getContext("webgl2");
+  var gl = canvas.getContext("webgl2");
   if (!gl) {
     console.log("WebGL not supported!")
   }
 
-  const program = webglUtils.createProgramFromSources(gl, [vertexShaderSource, fragmentShaderSource]);
+  var program = webglUtils.createProgramFromSources(gl, [vertexShaderSource, fragmentShaderSource]);
 
-  const positionAttributeLocation = gl.getAttribLocation(program, "a_position");
-  const resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
-  const colorLocation = gl.getUniformLocation(program, "u_color");
-  const matrixLocation = gl.getUniformLocation(program, "u_matrix");
+  var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+  var resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
+  var colorLocation = gl.getUniformLocation(program, "u_color");
+  var matrixLocation = gl.getUniformLocation(program, "u_matrix");
 
-  const positionBuffer = gl.createBuffer();
-  const vao = gl.createVertexArray();
+  var positionBuffer = gl.createBuffer();
+  var vao = gl.createVertexArray();
   gl.bindVertexArray(vao);
   gl.enableVertexAttribArray(positionAttributeLocation);
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
   setGeometry(gl);
 
-  const size = 2;
-  const type = gl.FLOAT;
-  const normalize = false;
-  const stride = 0;
-  const offset = 0;
+  var size = 2;
+  var type = gl.FLOAT;
+  var normalize = false;
+  var stride = 0;
+  var offset = 0;
 
   gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset);
 
@@ -96,10 +96,10 @@ function main() {
 
     gl.uniform4fv(colorLocation, color);
 
-    const projectionMatrix = m3.projection(gl.canvas.clientWidth, gl.canvas.clientHeight);
-    const translationMatrix = m3.translation(translation[0], translation[1]);
-    const rotationMatrix = m3.rotation(rotationInRadians);
-    const scaleMatrix = m3.scaling(scale[0], scale[1]);
+    var projectionMatrix = m3.projection(gl.canvas.clientWidth, gl.canvas.clientHeight);
+    var translationMatrix = m3.translation(translation[0], translation[1]);
+    var rotationMatrix = m3.rotation(rotationInRadians);
+    var scaleMatrix = m3.scaling(scale[0], scale[1]);
 
     var matrix = m3.multiply(projectionMatrix, translationMatrix);
     matrix = m3.multiply(matrix, rotationMatrix);
