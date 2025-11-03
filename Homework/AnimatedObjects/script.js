@@ -39,6 +39,7 @@ function main() {
   gl.bindVertexArray(vao);
   gl.enableVertexAttribArray(positionLocation);
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  setGeometry(gl);
 
   var size = 2;
   var type = gl.FLOAT;
@@ -49,79 +50,45 @@ function main() {
 
   var objects = [
     {
-      translation: [0, 0],
+      translation: [150, 150],
       rotation: 0,
+      rotationSpeed: 1.0,
       scale: [1, 1],
       color: [Math.random(), Math.random(), Math.random(), 1]
     },
     {
-      translation: [250, 250],
+      translation: [350, 350],
       rotation: 0,
+      rotationSpeed: -0.7,
       scale: [1, 1],
       color: [Math.random(), Math.random(), Math.random(), 1]
     }
-  ]
-
-  drawScene();
-
-  objects.forEach((obj, i) => {
-    webglLessonsUI.setupSlider(`#x${i}`, { value: obj.translation[0], slide: updatePosition(i, 0), max: gl.canvas.width });
-    webglLessonsUI.setupSlider(`#y${i}`, { value: obj.translation[1], slide: updatePosition(i, 1), max: gl.canvas.height });
-    webglLessonsUI.setupSlider("#angle0", { value: objects[0].rotation * 180 / Math.PI | 0, slide: updateAngle(0), max: 360 });
-    webglLessonsUI.setupSlider("#angle1", { value: objects[1].rotation * 180 / Math.PI | 0, slide: updateAngle(1), max: 360 });
-    webglLessonsUI.setupSlider(`#scaleX${i}`, { value: obj.scale[0], slide: updateScale(i, 0), min: -5, max: 5, step: 0.01, precision: 2 });
-    webglLessonsUI.setupSlider(`#scaleY${i}`, { value: obj.scale[1], slide: updateScale(i, 1), min: -5, max: 5, step: 0.01, precision: 2 });
-  });
-
-
-  function updatePosition(index, axis) {
-    return function (event, ui) {
-      objects[index].translation[axis] = ui.value;
-      drawScene();
-    }
-  }
-
-  function updateAngle(index) {
-    return function (event, ui) {
-      var angleInDegrees = ui.value;
-      objects[index].rotation = angleInDegrees * Math.PI / 180;
-      drawScene();
-    }
-  }
-
-
-  function updateScale(index, axis) {
-    return function (event, ui) {
-      objects[index].scale[axis] = ui.value;
-      drawScene();
-    }
-  }
+  ];
 
   function drawScene() {
-    setGeometry(gl);
-
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     objects.forEach(object => {
+      object.rotation += object.rotationSpeed * Math.PI / 180;
+
+      let matrix = m3.projection(gl.canvas.clientWidth, gl.canvas.clientHeight);
+      matrix = m3.multiply(matrix, m3.translation(object.translation[0], object.translation[1]));
+      matrix = m3.multiply(matrix, m3.rotation(object.rotation));
+      matrix = m3.multiply(matrix, m3.scaling(object.scale[0], object.scale[1]));
+
       gl.uniform4fv(colorLocation, object.color);
-
-      var projectionMatrix = m3.projection(gl.canvas.clientWidth, gl.canvas.clientHeight);
-      var translationMatrix = m3.translation(object.translation[0], object.translation[1]);
-      var rotationMatrix = m3.rotation(object.rotation);
-      var scaleMatrix = m3.scaling(object.scale[0], object.scale[1]);
-
-      var matrix = m3.multiply(projectionMatrix, translationMatrix);
-      matrix = m3.multiply(matrix, rotationMatrix);
-      matrix = m3.multiply(matrix, scaleMatrix);
-
       gl.uniformMatrix3fv(matrixLocation, false, matrix);
 
       var primitiveType = gl.TRIANGLES;
       var offset = 0;
       var count = 18;
       gl.drawArrays(primitiveType, offset, count);
-    })
+    });
+
+    requestAnimationFrame(drawScene);
   }
+
+  requestAnimationFrame(drawScene);
 }
 
 function setGeometry(gl) {
