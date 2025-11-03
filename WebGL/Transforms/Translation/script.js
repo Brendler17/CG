@@ -1,9 +1,11 @@
 const vertexShaderSource = `#version 300 es
     in vec2 a_position;
     uniform vec2 u_resolution;
+    uniform vec2 u_translation;
 
     void main() {
-      vec2 zeroToOne = a_position / u_resolution;
+      vec2 position = a_position + u_translation;
+      vec2 zeroToOne = position / u_resolution;
       vec2 zeroToTwo = zeroToOne * 2.0;
       vec2 clipSpace = zeroToTwo - 1.0;
       gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
@@ -33,12 +35,15 @@ function main() {
   const positionAttributeLocation = gl.getAttribLocation(program, "a_position");
   const resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
   const colorLocation = gl.getUniformLocation(program, "u_color");
+  const translationLocation = gl.getUniformLocation(program, "u_translation");
 
   const positionBuffer = gl.createBuffer();
   const vao = gl.createVertexArray();
   gl.bindVertexArray(vao);
   gl.enableVertexAttribArray(positionAttributeLocation);
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+  setGeometry(gl);
 
   const size = 2;
   const type = gl.FLOAT;
@@ -50,8 +55,6 @@ function main() {
 
   // VARIÁVEIS DE TRANSLAÇÃO //
   const translation = [0, 0];
-  const width = 100;
-  const height = 30;
   const color = [Math.random(), Math.random(), Math.random(), 1];
 
   drawScene();
@@ -62,6 +65,7 @@ function main() {
   function updatePosition(index) {
     return function (event, ui) {
       translation[index] = ui.value;
+      console.log("New Draw!")
       drawScene();
     }
   }
@@ -80,31 +84,41 @@ function main() {
 
     gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    setRectangle(gl, translation[0], translation[1], width, height);
-
     gl.uniform4fv(colorLocation, color);
+
+    gl.uniform2fv(translationLocation, translation);
 
     var primitiveType = gl.TRIANGLES;
     var offset = 0;
-    var count = 6;
+    var count = 18;
     gl.drawArrays(primitiveType, offset, count);
   }
 }
 
-function setRectangle(gl, x, y, width, height) {
-  var x1 = x;
-  var x2 = x + width;
-  var y1 = y;
-  var y2 = y + height;
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-    x1, y1,
-    x2, y1,
-    x1, y2,
-    x1, y2,
-    x2, y1,
-    x2, y2,
-  ]), gl.STATIC_DRAW);
+function setGeometry(gl) {
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array([
+      0, 0,
+      30, 0,
+      0, 150,
+      0, 150,
+      30, 0,
+      30, 150,
+      30, 0,
+      100, 0,
+      30, 30,
+      30, 30,
+      100, 0,
+      100, 30,
+      30, 60,
+      67, 60,
+      30, 90,
+      30, 90,
+      67, 60,
+      67, 90,
+    ]),
+    gl.STATIC_DRAW);
 }
 
 main();
