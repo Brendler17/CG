@@ -65,17 +65,7 @@ function main() {
 
   webglLessonsUI.setupSlider("#x", { slide: updatePosition(0), max: gl.canvas.width });
   webglLessonsUI.setupSlider("#y", { slide: updatePosition(1), max: gl.canvas.height });
-
-  $("#rotation").gmanUnitCircle({
-    width: 200,
-    height: 200,
-    value: 0,
-    slide: function (e, u) {
-      rotation[0] = u.x;
-      rotation[1] = u.y;
-      drawScene();
-    },
-  });
+  webglLessonsUI.setupSlider("#angle", { slide: updateAngle, max: 360 });
 
   function updatePosition(index) {
     return function (event, ui) {
@@ -83,6 +73,14 @@ function main() {
       console.log("New Draw!")
       drawScene();
     }
+  }
+
+  function updateAngle(event, ui) {
+    var angleInDegrees = 360 - ui.value;
+    var angleInRadians = angleInDegrees * Math.PI / 180;
+    rotation[0] = Math.sin(angleInRadians);
+    rotation[1] = Math.cos(angleInRadians);
+    drawScene();
   }
 
   function drawScene() {
