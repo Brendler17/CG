@@ -47,10 +47,10 @@ function main() {
 
   gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset);
 
-  let translation = [150, 150];
-  let rotationInRadians = 0;
-  let scale = [1, 1];
-  let color = [Math.random(), Math.random(), Math.random(), 1];
+  var translation = [150, 150];
+  var rotationInRadians = 0;
+  var scale = [1, 1];
+  var color = [Math.random(), Math.random(), Math.random(), 1];
 
   drawScene();
 
