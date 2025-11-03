@@ -28,7 +28,6 @@ function main() {
   var program = webglUtils.createProgramFromSources(gl, [vertexShaderSource, fragmentShaderSource]);
 
   var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
-  var resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
   var colorLocation = gl.getUniformLocation(program, "u_color");
   var matrixLocation = gl.getUniformLocation(program, "u_matrix");
 
@@ -48,7 +47,6 @@ function main() {
 
   gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset);
 
-  // VARIÁVEIS DE TRANSLAÇÃO //
   let translation = [150, 150];
   let rotationInRadians = 0;
   let scale = [1, 1];
