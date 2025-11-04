@@ -52,13 +52,13 @@ function main() {
       translation: [0, 0],
       rotation: 0,
       scale: [1, 1],
-      color: [Math.random(), Math.random(), Math.random(), 1]
+      color: [0, 0, 0, 1]
     },
     {
       translation: [250, 250],
       rotation: 0,
       scale: [1, 1],
-      color: [Math.random(), Math.random(), Math.random(), 1]
+      color: [0, 0, 0, 1]
     }
   ]
 
@@ -102,17 +102,23 @@ function main() {
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    var fOrigin = [50, 75];
     objects.forEach(object => {
       gl.uniform4fv(colorLocation, object.color);
 
       var projectionMatrix = m3.projection(gl.canvas.clientWidth, gl.canvas.clientHeight);
       var translationMatrix = m3.translation(object.translation[0], object.translation[1]);
+      var moveOriginMatrix = m3.translation(fOrigin[0], fOrigin[1]);
+      var moveOriginBackMatrix = m3.translation(-fOrigin[0], -fOrigin[1]);
       var rotationMatrix = m3.rotation(object.rotation);
       var scaleMatrix = m3.scaling(object.scale[0], object.scale[1]);
 
-      var matrix = m3.multiply(projectionMatrix, translationMatrix);
-      matrix = m3.multiply(matrix, rotationMatrix);
-      matrix = m3.multiply(matrix, scaleMatrix);
+
+      var matrix = m3.multiply(projectionMatrix, translationMatrix);  // move o F até sua posição global
+      matrix = m3.multiply(matrix, moveOriginMatrix);                 // leva o centro do F para a origem
+      matrix = m3.multiply(matrix, rotationMatrix);                   // gira em torno do centro
+      matrix = m3.multiply(matrix, moveOriginBackMatrix);             // volta o F para posição original
+      matrix = m3.multiply(matrix, scaleMatrix);                      // aplica escala, se desejar
 
       gl.uniformMatrix3fv(matrixLocation, false, matrix);
 
