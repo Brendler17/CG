@@ -7,9 +7,9 @@ O código utiliza **shaders** escritos em GLSL e JavaScript para aplicar as tran
 
 ## Como Executar
 
-Para visualizar o projeto, você tem duas opções:
+Para visualizar o projeto?
 
-### Opção 1: Abrir Diretamente no Navegador (Mais Simples)
+### Abrir Diretamente no Navegador
 
 1.  Certifique-se de ter os arquivos do projeto (baixados ou clonados).
 2.  Localize o arquivo `index.html`.
