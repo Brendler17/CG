@@ -54,26 +54,31 @@ function main() {
       rotation: 0,
       rotationSpeed: 1.0,
       scale: [1, 1],
-      color: [Math.random(), Math.random(), Math.random(), 1]
+      color: [0, 0, 0, 1]
     },
     {
       translation: [350, 350],
       rotation: 0,
       rotationSpeed: -0.7,
       scale: [1, 1],
-      color: [Math.random(), Math.random(), Math.random(), 1]
+      color: [0, 0, 0, 1]
     }
   ];
+
+
 
   function drawScene() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    const fOrigin = [50, 75];
     objects.forEach(object => {
       object.rotation += object.rotationSpeed * Math.PI / 180;
 
       let matrix = m3.projection(gl.canvas.clientWidth, gl.canvas.clientHeight);
       matrix = m3.multiply(matrix, m3.translation(object.translation[0], object.translation[1]));
+      matrix = m3.multiply(matrix, m3.translation(fOrigin[0], fOrigin[1]));
       matrix = m3.multiply(matrix, m3.rotation(object.rotation));
+      matrix = m3.multiply(matrix, m3.translation(-fOrigin[0], -fOrigin[1]));
       matrix = m3.multiply(matrix, m3.scaling(object.scale[0], object.scale[1]));
 
       gl.uniform4fv(colorLocation, object.color);
